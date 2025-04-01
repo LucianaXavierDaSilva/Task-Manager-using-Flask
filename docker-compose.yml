@@ -1,0 +1,12 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: task-manager
+    container_name: task-manager-container
+    ports:
+      - 8080:5000
+    volumes:
+      - /home/aluno/Task-Manager-using-Flask/dados:/app/dados
