@@ -10,3 +10,5 @@ services:
       - 8080:5000
     volumes:
       - /home/aluno/Task-Manager-using-Flask/dados:/app/dados
+    restart: always # Adicionado para reiniciar automaticamente
+
