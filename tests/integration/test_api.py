@@ -48,7 +48,7 @@ def get_task_csrf_token():
 def test_create_task():
     global csrf_token_global
     task_data = {"title": "Test Task", "description": "This is a test task", "csrf_token": csrf_token_global}
-    response = session.post(f"{BASE_URL}/tasks", json=task_data)
+    response = session.post(f"{BASE_URL}/tasks", data=task_data) # Use 'data' aqui
     print(f"\nHeaders da requisição (criar tarefa): {response.request.headers}")
     print(f"Conteúdo da resposta (criar tarefa): {response.text}")
     assert response.status_code == 201
@@ -57,7 +57,7 @@ def test_create_task():
 def test_get_task():
     global csrf_token_global
     task_data = {"title": "Test Task to Get", "description": "This task will be retrieved", "csrf_token": csrf_token_global}
-    create_response = session.post(f"{BASE_URL}/tasks", json=task_data, cookies=session.cookies)
+    create_response = session.post(f"{BASE_URL}/tasks", data=task_data, cookies=session.cookies) # Use 'data' aqui
     print(f"\nHeaders da requisição (criar tarefa para get): {create_response.request.headers}")
     assert create_response.status_code == 201
     task_id = create_response.json()["id"]

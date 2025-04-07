@@ -34,7 +34,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user)
-            task_form = TaskForm()
+            task_form = TaskForm() # Isso não é necessário aqui e pode ser confuso
             flash('Login Successfull', 'success')
             return redirect(url_for('all_tasks'))
         else:
@@ -137,12 +137,15 @@ def change_password():
 @app.route('/tasks', methods=['POST'])
 @login_required
 def create_new_task():
-    data = request.get_json()
-    logger.info(f"Recebida requisição POST para /tasks com dados: {data}")
-    if not data or 'title' not in data or 'description' not in data:
-        logger.warning("Dados incompletos na requisição POST para /tasks")
-        return jsonify({'error': 'Title and description are required'}), 400
-    task = Task(content=data['title'], description=data['description'], author=current_user)
+    title = request.form.get('title')
+    description = request.form.get('description')
+    csrf_token = request.form.get('csrf_token') # O token estará aqui agora
+    logger.info(f"Recebida requisição POST para /tasks com dados do formulário: {request.form}")
+    if not title or not description or not csrf_token:
+        logger.warning("Dados incompletos na requisição POST para /tasks (formulário)")
+        return jsonify({'error': 'Title, description, and CSRF token are required'}), 400
+    # Valide o CSRF token aqui se necessário (Flask-WTF faz isso automaticamente para formulários)
+    task = Task(content=title, description=description, author=current_user)
     db.session.add(task)
     db.session.commit()
     logger.info(f"Tarefa criada com ID: {task.id}, retornando status 201")
@@ -156,5 +159,4 @@ def get_single_task(task_id):
         return jsonify({'error': 'Unauthorized'}), 403
     logger.info(f"Requisição GET para /tasks/{task_id}, retornando status 200")
     return jsonify({'id': task.id, 'title': task.content, 'description': task.description}), 200
-
 
