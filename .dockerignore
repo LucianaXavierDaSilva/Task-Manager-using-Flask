@@ -5,9 +5,11 @@ __pycache__/
 *.log
 *.env
 tests/
-.pytest_cache/  # Se você usa pytest
-coverage/     # Se você usa coverage.py
-app.log       # Ignora um arquivo de log específico
-logs/*.txt    # Ignora todos os arquivos .txt dentro de uma pasta logs
+.pytest_cache/
+coverage/
+app.log
+logs/*.txt
 config_local.py
+todo_project/todo_project/site.db
+instance/
 
