@@ -4,6 +4,7 @@ COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 COPY todo_project/ /app/todo_project/
 COPY todo_project/create_db.py /app/create_db.py
+ENV SECRET_KEY=45cf93c4d41348cd9980674ade9a7356
 RUN python /app/create_db.py
 VOLUME /app/todo_project/todo_project/site.db # Declara um volume para o arquivo de banco de dados
 EXPOSE 5000
