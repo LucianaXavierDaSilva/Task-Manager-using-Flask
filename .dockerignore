@@ -1,0 +1,13 @@
+venv/
+*.pyc
+__pycache__/
+*.sqlite
+*.log
+*.env
+tests/
+.pytest_cache/  # Se você usa pytest
+coverage/     # Se você usa coverage.py
+app.log       # Ignora um arquivo de log específico
+logs/*.txt    # Ignora todos os arquivos .txt dentro de uma pasta logs
+config_local.py
+
