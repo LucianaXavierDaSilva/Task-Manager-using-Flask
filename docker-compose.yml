@@ -7,8 +7,13 @@ services:
     image: task-manager
     container_name: task-manager-container
     ports:
-      - 8080:5000
+      - "8080:5000"
     volumes:
-      - /home/aluno/Task-Manager-using-Flask/dados:/app/dados
-    restart: always # Adicionado para reiniciar automaticamente
+      - task_manager_data:/app/todo_project/todo_project/site.db
+    environment:
+      SECRET_KEY: ${SECRET_KEY} # Certifique-se de definir essa variável no seu ambiente
+    restart: always
+
+volumes:
+  task_manager_data:
 
