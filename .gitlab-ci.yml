@@ -1,0 +1,117 @@
+stages:
+  - build
+  - test_unit
+  - test_integration
+  - test_functional
+  - deploy_dev
+  - deploy_hml
+  - deploy_prod
+
+variables:
+  PYTHON_VERSION: "3.11-slim"
+  VENV_PATH: ".venv"
+  DOCKER_IMAGE_NAME: "task-manager"
+  IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_SHORT_SHA}
+  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
+  BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
+
+cache:
+  key: "venv-${CI_COMMIT_SHORT_SHA}"
+  paths:
+    - ${VENV_PATH}/
+
+build:
+  stage: build
+  image: docker:${PYTHON_VERSION}
+  services:
+    - docker:dind
+  script:
+    - echo "Compilando a imagem Docker..."
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY" || true
+    - docker build --cache-from ${IMAGE_TAG} --tag ${IMAGE_TAG} .
+    - docker push ${IMAGE_TAG}
+  artifacts:
+    paths:
+      - ./
+
+test_unit:
+  stage: test_unit
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Executando testes unitários..."
+    - python -m venv ${VENV_PATH}
+    - source ${VENV_PATH}/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt -r requirements-dev.txt
+    - pip install pytest pytest-cov
+    - pytest --cov=todo_project --cov-report=xml:coverage.xml todo_project/tests/unit
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+test_integration:
+  stage: test_integration
+  image: ${IMAGE_TAG} # Usando a imagem Docker construída
+  variables:
+    BASE_URL: "http://localhost:5000" # URL para os testes de integração (dentro do container isolado)
+  script:
+    - echo "Executando testes de integração em ambiente Docker..."
+    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" ${IMAGE_TAG} python todo_project/run.py &
+    - sleep 5 # Espera a aplicação iniciar
+    - python -m venv ${VENV_PATH} # Criando um venv novamente para isolamento
+    - source ${VENV_PATH}/bin/activate
+    - pip install -r requirements.txt pytest requests
+    - pytest tests/integration
+    - docker stop integration-tests
+
+test_functional:
+  stage: test_functional
+  image: ${IMAGE_TAG} # Usando a imagem Docker construída
+  variables:
+    BASE_URL: "http://localhost:8080" # URL da API para testes funcionais
+  script:
+    - echo "Executando testes funcionais (API)..."
+    - python -m venv ${VENV_PATH}
+    - source ${VENV_PATH}/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt pytest requests
+    - cd tests/functional
+    - pytest --base-url=${BASE_URL}
+
+deploy_dev:
+  stage: deploy_dev
+  image: alpine/git # Uma imagem leve com Git para deploy
+  only:
+    - develop
+  script:
+    - echo "Iniciando deploy para o ambiente de desenvolvimento..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de desenvolvimento."
+    - echo "Nenhuma ação de deploy real implementada."
+
+deploy_hml:
+  stage: deploy_hml
+  image: alpine/git # Uma imagem leve com Git para deploy
+  only:
+    - hml
+  script:
+    - echo "Iniciando deploy para o ambiente de homologação (HML)..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de homologação."
+    - echo "Nenhuma ação de deploy real implementada."
+
+deploy_prod:
+  stage: deploy_prod
+  image: alpine/git # Uma imagem leve com Git para deploy
+  only:
+    - prod
+  script:
+    - echo "Iniciando deploy para o ambiente de produção..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de produção."
+    - echo "Nenhuma ação de deploy real implementada."
+
+
+
+
+
+
