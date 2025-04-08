@@ -44,7 +44,7 @@ test_unit:
     - pip install --upgrade pip
     - pip install -r requirements.txt -r requirements-dev.txt
     - pip install pytest pytest-cov
-    - pytest --cov=todo_project --cov-report=xml:coverage.xml todo_project/tests/unit
+    - pytest --cov=todo_project --cov-report=xml:coverage.xml tests/unitary
   artifacts:
     reports:
       coverage_report:
@@ -109,9 +109,5 @@ deploy_prod:
     - echo "Iniciando deploy para o ambiente de produção..."
     - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de produção."
     - echo "Nenhuma ação de deploy real implementada."
-
-
-
-
 
 
