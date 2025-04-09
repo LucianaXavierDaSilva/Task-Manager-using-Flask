@@ -94,3 +94,5 @@ deploy_prod:
     - echo "Simulando deploy para Produção..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+
+
