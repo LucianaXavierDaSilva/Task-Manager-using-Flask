@@ -13,8 +13,8 @@ variables:
   CI_REGISTRY: "192.168.98.10:8080"
   CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
   IMAGE_TAG: "${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}"
-  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta
-  BASE_URL: "http://localhost:8080" # URL padrão para testes funcionais
+  SECRET_KEY: $SECRET_KEY
+  BASE_URL: "http://localhost:8080"
 
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
@@ -58,14 +58,13 @@ test_integration:
   stage: test_integration
   image: python:${PYTHON_VERSION}
   script:
-    - echo "Executando testes de integração..."
+    - echo "Iniciando testes de integração..."
     - python -m venv ${VENV_PATH}
     - source ${VENV_PATH}/bin/activate
     - pip install --upgrade pip
     - pip install -r requirements.txt -r requirements-dev.txt
     - pip install pytest requests
     - pytest tests/integration
-    - echo "Observação: Testes de integração podem precisar de um ambiente em execução."
 
 test_functional:
   stage: test_functional
@@ -78,7 +77,6 @@ test_functional:
     - pip install -r requirements.txt pytest requests
     - cd tests/functional
     - pytest --base-url=${BASE_URL}
-    - echo "Observação: Testes funcionais pressupõem que a API esteja acessível em ${BASE_URL}."
 
 deploy_dev:
   stage: deploy_dev
@@ -104,7 +102,7 @@ deploy_prod:
   stage: deploy_prod
   image: alpine/git
   only:
-    - main # ou master, dependendo do seu branch principal
+    - main
   script:
     - echo "Deploy para Produção..."
     - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de produção."
