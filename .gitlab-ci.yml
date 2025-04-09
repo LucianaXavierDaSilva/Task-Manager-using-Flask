@@ -6,6 +6,7 @@ stages:
   - deploy_dev
   - deploy_hml
   - deploy_prod
+  - deploy # Adicionando a stage de deploy
 
 variables:
   PYTHON_VERSION: "3.11-slim"
@@ -110,4 +111,23 @@ deploy_prod:
     - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de produção."
     - echo "Nenhuma ação de deploy real implementada."
 
+deploy: # Adicionando o job de deploy
+  stage: deploy
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  tags:
+    - docker-stable # Certifique-se de usar a tag que você definiu para o runner
+  before_script:
+    - echo "Remove anterior"
+    - PORT_CONTAINERS=$(docker ps --filter "publish=8081" -q)
+    - echo $PORT_CONTAINERS
+    - if [ -n "$PORT_CONTAINERS" ]; then
+        docker stop $PORT_CONTAINERS;
+        docker rm $PORT_CONTAINERS;
+        sleep 5;
+    fi
+  script:
+    - echo "Deploying the app"
+    - docker run -d -p 8081:8080 $IMAGE_TAG # Usando a variável IMAGE_TAG
 
