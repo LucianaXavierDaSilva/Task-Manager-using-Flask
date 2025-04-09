@@ -6,15 +6,15 @@ stages:
   - deploy_dev
   - deploy_hml
   - deploy_prod
-  - deploy # Adicionando a stage de deploy
 
 variables:
   PYTHON_VERSION: "3.11-slim"
   VENV_PATH: ".venv"
-  DOCKER_IMAGE_NAME: "task-manager"
-  CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker
-  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
-  BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
+  CI_REGISTRY: "192.168.98.10:8080"
+  CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
+  IMAGE_TAG: "${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}"
+  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta
+  BASE_URL: "http://localhost:8080" # URL padrão para testes funcionais
 
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
@@ -23,7 +23,7 @@ cache:
 
 build:
   stage: build
-  image: docker:20.10.21 # Imagem Docker
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
@@ -56,24 +56,20 @@ test_unit:
 
 test_integration:
   stage: test_integration
-  image: "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a imagem Docker construída
-  variables:
-    BASE_URL: "http://localhost:5000" # URL para os testes de integração (dentro do container isolado)
+  image: python:${PYTHON_VERSION}
   script:
-    - echo "Executando testes de integração em ambiente Docker..."
-    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" python todo_project/run.py & # Executa em background
-    - sleep 5 # Espera a aplicação iniciar
-    - python -m venv ${VENV_PATH} # Criando um venv novamente para isolamento
+    - echo "Executando testes de integração..."
+    - python -m venv ${VENV_PATH}
     - source ${VENV_PATH}/bin/activate
-    - pip install -r requirements.txt pytest requests
+    - pip install --upgrade pip
+    - pip install -r requirements.txt -r requirements-dev.txt
+    - pip install pytest requests
     - pytest tests/integration
-    - docker stop integration-tests
+    - echo "Observação: Testes de integração podem precisar de um ambiente em execução."
 
 test_functional:
   stage: test_functional
-  image: "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a imagem Docker construída
-  variables:
-    BASE_URL: "http://localhost:8080" # URL da API para testes funcionais
+  image: python:${PYTHON_VERSION}
   script:
     - echo "Executando testes funcionais (API)..."
     - python -m venv ${VENV_PATH}
@@ -82,53 +78,34 @@ test_functional:
     - pip install -r requirements.txt pytest requests
     - cd tests/functional
     - pytest --base-url=${BASE_URL}
+    - echo "Observação: Testes funcionais pressupõem que a API esteja acessível em ${BASE_URL}."
 
 deploy_dev:
   stage: deploy_dev
-  image: alpine/git # Uma imagem leve com Git para deploy
+  image: alpine/git
   only:
     - develop
   script:
-    - echo "Iniciando deploy para o ambiente de desenvolvimento..."
-    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de desenvolvimento."
-    - echo "Nenhuma ação de deploy real implementada."
+    - echo "Deploy para Desenvolvimento..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de desenvolvimento."
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 
 deploy_hml:
   stage: deploy_hml
-  image: alpine/git # Uma imagem leve com Git para deploy
+  image: alpine/git
   only:
     - hml
   script:
-    - echo "Iniciando deploy para o ambiente de homologação (HML)..."
-    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de homologação."
-    - echo "Nenhuma ação de deploy real implementada."
+    - echo "Deploy para Homologação..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de homologação."
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 
 deploy_prod:
   stage: deploy_prod
-  image: alpine/git # Uma imagem leve com Git para deploy
+  image: alpine/git
   only:
-    - prod
+    - main # ou master, dependendo do seu branch principal
   script:
-    - echo "Iniciando deploy para o ambiente de produção..."
-    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de produção."
-    - echo "Nenhuma ação de deploy real implementada."
-
-deploy: # Adicionando o job de deploy
-  stage: deploy
-  image: docker:20.10.16
-  services:
-    - docker:20.10.16-dind
-  tags:
-    - docker-stable # Certifique-se de usar a tag que você definiu para o runner
-  before_script:
-    - echo "Remove anterior"
-    - PORT_CONTAINERS=$(docker ps --filter "publish=8081" -q)
-    - echo "$PORT_CONTAINERS" # Adicionadas aspas para evitar problemas com strings vazias
-    - if [ -n "$PORT_CONTAINERS" ]; then
-        docker stop "$PORT_CONTAINERS"
-        docker rm "$PORT_CONTAINERS"
-        sleep 5
-      fi
-  script:
-    - echo "Deploying the app"
-    - docker run -d -p 8081:8080 "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a variável IMAGE_TAG com aspas
+    - echo "Deploy para Produção..."
+    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de produção."
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
