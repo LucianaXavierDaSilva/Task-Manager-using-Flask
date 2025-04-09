@@ -13,7 +13,8 @@ variables:
   VENV_PATH: ".venv"
   DOCKER_IMAGE_NAME: "task-manager"
   CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker
-  IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_SHORT_SHA}
+  CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]') # Converter para lowercase
+  IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA} # Usar a versão em lowercase
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
   BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
 
@@ -127,7 +128,8 @@ deploy: # Adicionando o job de deploy
         docker stop "$PORT_CONTAINERS"
         docker rm "$PORT_CONTAINERS"
         sleep 5
-    fi
+      fi
   script:
     - echo "Deploying the app"
     - docker run -d -p 8081:8080 "${IMAGE_TAG}" # Usando a variável IMAGE_TAG com aspas
+
