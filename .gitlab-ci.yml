@@ -12,6 +12,7 @@ variables:
   PYTHON_VERSION: "3.11-slim"
   VENV_PATH: ".venv"
   DOCKER_IMAGE_NAME: "task-manager"
+  CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker (CORRIGIDO)
   IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_SHORT_SHA}
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
   BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
@@ -28,9 +29,9 @@ build:
     - docker:dind
   script:
     - echo "Compilando a imagem Docker..."
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY" || true
-    - docker build --cache-from ${IMAGE_TAG} --tag ${IMAGE_TAG} .
-    - docker push ${IMAGE_TAG}
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" || true # Usando --password-stdin
+    - docker build --cache-from "${IMAGE_TAG}" --tag "${IMAGE_TAG}" . # Usando aspas para garantir interpolação correta
+    - docker push "${IMAGE_TAG}" # Usando aspas para garantir interpolação correta
   artifacts:
     paths:
       - ./
@@ -54,12 +55,12 @@ test_unit:
 
 test_integration:
   stage: test_integration
-  image: ${IMAGE_TAG} # Usando a imagem Docker construída
+  image: "${IMAGE_TAG}" # Usando a imagem Docker construída (Adicionadas aspas)
   variables:
     BASE_URL: "http://localhost:5000" # URL para os testes de integração (dentro do container isolado)
   script:
     - echo "Executando testes de integração em ambiente Docker..."
-    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" ${IMAGE_TAG} python todo_project/run.py &
+    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${IMAGE_TAG}" python todo_project/run.py & # Adicionadas aspas
     - sleep 5 # Espera a aplicação iniciar
     - python -m venv ${VENV_PATH} # Criando um venv novamente para isolamento
     - source ${VENV_PATH}/bin/activate
@@ -69,7 +70,7 @@ test_integration:
 
 test_functional:
   stage: test_functional
-  image: ${IMAGE_TAG} # Usando a imagem Docker construída
+  image: "${IMAGE_TAG}" # Usando a imagem Docker construída (Adicionadas aspas)
   variables:
     BASE_URL: "http://localhost:8080" # URL da API para testes funcionais
   script:
@@ -121,13 +122,12 @@ deploy: # Adicionando o job de deploy
   before_script:
     - echo "Remove anterior"
     - PORT_CONTAINERS=$(docker ps --filter "publish=8081" -q)
-    - echo $PORT_CONTAINERS
+    - echo "$PORT_CONTAINERS" # Adicionadas aspas para evitar problemas com strings vazias
     - if [ -n "$PORT_CONTAINERS" ]; then
-        docker stop $PORT_CONTAINERS;
-        docker rm $PORT_CONTAINERS;
+        docker stop "$PORT_CONTAINERS"; # Adicionadas aspas
+        docker rm "$PORT_CONTAINERS"; # Adicionadas aspas
         sleep 5;
       fi
   script:
     - echo "Deploying the app"
-    - docker run -d -p 8081:8080 $IMAGE_TAG # Usando a variável IMAGE_TAG
-
+    - docker run -d -p 8081:8080 "${IMAGE_TAG}" # Usando a variável IMAGE_TAG com aspas
