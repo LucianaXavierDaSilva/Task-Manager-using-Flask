@@ -23,7 +23,7 @@ cache:
 
 build:
   stage: build
-  image: docker:20.10.21-alpine3.19 # Imagem Docker corrigida
+  image: docker:20.10.21 # Imagem Docker
   services:
     - docker:dind
   script:
@@ -130,3 +130,4 @@ deploy: # Adicionando o job de deploy
   script:
     - echo "Deploying the app"
     - docker run -d -p 8081:8080 $IMAGE_TAG # Usando a variável IMAGE_TAG
+
