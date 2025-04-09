@@ -126,7 +126,7 @@ deploy: # Adicionando o job de deploy
         docker stop $PORT_CONTAINERS;
         docker rm $PORT_CONTAINERS;
         sleep 5;
-    fi
+      fi
   script:
     - echo "Deploying the app"
     - docker run -d -p 8081:8080 $IMAGE_TAG # Usando a variável IMAGE_TAG
