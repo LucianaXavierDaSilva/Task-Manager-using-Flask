@@ -13,8 +13,6 @@ variables:
   VENV_PATH: ".venv"
   DOCKER_IMAGE_NAME: "task-manager"
   CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker
-  CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]') # Converter para lowercase
-  IMAGE_TAG: "${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}" # Usando aspas na definição
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
   BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
 
@@ -30,9 +28,11 @@ build:
     - docker:dind
   script:
     - echo "Compilando a imagem Docker..."
-    - docker build --cache-from "$IMAGE_TAG" --tag "$IMAGE_TAG" . # Usando aspas duplas
+    - PROJECT_PATH_LOWER=$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
+    - IMAGE_TAG_FINAL="${CI_REGISTRY}/${PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}"
+    - docker build --cache-from "$IMAGE_TAG_FINAL" --tag "$IMAGE_TAG_FINAL" .
     - echo "Pushing a imagem Docker..."
-    - docker push "$IMAGE_TAG" # Tentando o push sem login explícito
+    - docker push "$IMAGE_TAG_FINAL"
   artifacts:
     paths:
       - ./
@@ -56,12 +56,12 @@ test_unit:
 
 test_integration:
   stage: test_integration
-  image: "${IMAGE_TAG}" # Usando a imagem Docker construída
+  image: "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a imagem Docker construída
   variables:
     BASE_URL: "http://localhost:5000" # URL para os testes de integração (dentro do container isolado)
   script:
     - echo "Executando testes de integração em ambiente Docker..."
-    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${IMAGE_TAG}" python todo_project/run.py & # Executa em background
+    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" python todo_project/run.py & # Executa em background
     - sleep 5 # Espera a aplicação iniciar
     - python -m venv ${VENV_PATH} # Criando um venv novamente para isolamento
     - source ${VENV_PATH}/bin/activate
@@ -71,7 +71,7 @@ test_integration:
 
 test_functional:
   stage: test_functional
-  image: "${IMAGE_TAG}" # Usando a imagem Docker construída
+  image: "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a imagem Docker construída
   variables:
     BASE_URL: "http://localhost:8080" # URL da API para testes funcionais
   script:
@@ -90,7 +90,7 @@ deploy_dev:
     - develop
   script:
     - echo "Iniciando deploy para o ambiente de desenvolvimento..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de desenvolvimento."
+    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de desenvolvimento."
     - echo "Nenhuma ação de deploy real implementada."
 
 deploy_hml:
@@ -100,7 +100,7 @@ deploy_hml:
     - hml
   script:
     - echo "Iniciando deploy para o ambiente de homologação (HML)..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de homologação."
+    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de homologação."
     - echo "Nenhuma ação de deploy real implementada."
 
 deploy_prod:
@@ -110,7 +110,7 @@ deploy_prod:
     - prod
   script:
     - echo "Iniciando deploy para o ambiente de produção..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} para o ambiente de produção."
+    - echo "Simulando deploy da imagem ${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA} para o ambiente de produção."
     - echo "Nenhuma ação de deploy real implementada."
 
 deploy: # Adicionando o job de deploy
@@ -131,4 +131,4 @@ deploy: # Adicionando o job de deploy
       fi
   script:
     - echo "Deploying the app"
-    - docker run -d -p 8081:8080 "${IMAGE_TAG}" # Usando a variável IMAGE_TAG com aspas
+    - docker run -d -p 8081:8080 "${CI_REGISTRY}/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):${CI_COMMIT_SHORT_SHA}" # Usando a variável IMAGE_TAG com aspas
