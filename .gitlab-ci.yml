@@ -14,7 +14,7 @@ variables:
   DOCKER_IMAGE_NAME: "task-manager"
   CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker
   CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]') # Converter para lowercase
-  IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA} # Usar a versão em lowercase
+  IMAGE_TAG: "${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}" # Usando aspas na definição
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
   BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
 
@@ -30,9 +30,9 @@ build:
     - docker:dind
   script:
     - echo "Compilando a imagem Docker..."
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" || true # Usando --password-stdin
-    - docker build --cache-from "${IMAGE_TAG}" --tag "${IMAGE_TAG}" . # Usando aspas para garantir interpolação correta
-    - docker push "${IMAGE_TAG}" # Usando aspas para garantir interpolação correta
+    - docker build --cache-from "$IMAGE_TAG" --tag "$IMAGE_TAG" . # Usando aspas duplas
+    - echo "Pushing a imagem Docker..."
+    - docker push "$IMAGE_TAG" # Tentando o push sem login explícito
   artifacts:
     paths:
       - ./
@@ -132,4 +132,3 @@ deploy: # Adicionando o job de deploy
   script:
     - echo "Deploying the app"
     - docker run -d -p 8081:8080 "${IMAGE_TAG}" # Usando a variável IMAGE_TAG com aspas
-
