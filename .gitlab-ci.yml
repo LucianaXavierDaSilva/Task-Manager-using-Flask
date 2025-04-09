@@ -10,11 +10,10 @@ stages:
 variables:
   PYTHON_VERSION: "3.11-slim"
   VENV_PATH: ".venv"
-  CI_REGISTRY: "192.168.98.10:8080"
-  CI_PROJECT_PATH_LOWER: $(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
-  IMAGE_TAG: "${CI_REGISTRY}/${CI_PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}"
-  SECRET_KEY: $SECRET_KEY
-  BASE_URL: "http://localhost:8080"
+  DOCKER_IMAGE_NAME: "task-manager-estudo-caso"
+  IMAGE_TAG: "${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
+  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido
+  BASE_URL: "http://localhost:8080" # URL padrão
 
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
@@ -28,11 +27,8 @@ build:
     - docker:dind
   script:
     - echo "Compilando a imagem Docker..."
-    - PROJECT_PATH_LOWER=$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
-    - IMAGE_TAG_FINAL="${CI_REGISTRY}/${PROJECT_PATH_LOWER}:${CI_COMMIT_SHORT_SHA}"
-    - docker build --cache-from "$IMAGE_TAG_FINAL" --tag "$IMAGE_TAG_FINAL" .
-    - echo "Pushing a imagem Docker..."
-    - docker push "$IMAGE_TAG_FINAL"
+    - docker build --tag "$IMAGE_TAG" .
+    - echo "Imagem Docker construída com sucesso: $IMAGE_TAG"
   artifacts:
     paths:
       - ./
@@ -45,7 +41,7 @@ test_unit:
     - python -m venv ${VENV_PATH}
     - source ${VENV_PATH}/bin/activate
     - pip install --upgrade pip
-    - pip install -r requirements.txt -r requirements-dev.txt
+    - pip install -r requirements.txt
     - pip install pytest pytest-cov
     - pytest --cov=todo_project --cov-report=xml:coverage.xml tests/unitary
   artifacts:
@@ -58,11 +54,11 @@ test_integration:
   stage: test_integration
   image: python:${PYTHON_VERSION}
   script:
-    - echo "Iniciando testes de integração..."
+    - echo "Executando testes de integração..."
     - python -m venv ${VENV_PATH}
     - source ${VENV_PATH}/bin/activate
     - pip install --upgrade pip
-    - pip install -r requirements.txt -r requirements-dev.txt
+    - pip install -r requirements.txt
     - pip install pytest requests
     - pytest tests/integration
 
@@ -84,8 +80,8 @@ deploy_dev:
   only:
     - develop
   script:
-    - echo "Deploy para Desenvolvimento..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de desenvolvimento."
+    - echo "Simulando deploy para Desenvolvimento..."
+    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 
 deploy_hml:
@@ -94,8 +90,8 @@ deploy_hml:
   only:
     - hml
   script:
-    - echo "Deploy para Homologação..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de homologação."
+    - echo "Simulando deploy para Homologação..."
+    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 
 deploy_prod:
@@ -104,6 +100,6 @@ deploy_prod:
   only:
     - main
   script:
-    - echo "Deploy para Produção..."
-    - echo "Simulando deploy da imagem ${IMAGE_TAG} no ambiente de produção."
+    - echo "Simulando deploy para Produção..."
+    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
