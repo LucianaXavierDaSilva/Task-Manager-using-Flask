@@ -12,7 +12,7 @@ variables:
   PYTHON_VERSION: "3.11-slim"
   VENV_PATH: ".venv"
   DOCKER_IMAGE_NAME: "task-manager"
-  CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker (CORRIGIDO)
+  CI_REGISTRY: "192.168.98.10:8080" # Hostname e porta do seu registro Docker
   IMAGE_TAG: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_SHORT_SHA}
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido como variável secreta no GitLab CI
   BASE_URL: "http://localhost:8080" # URL da API para testes funcionais (ajuste se necessário)
@@ -55,12 +55,12 @@ test_unit:
 
 test_integration:
   stage: test_integration
-  image: "${IMAGE_TAG}" # Usando a imagem Docker construída (Adicionadas aspas)
+  image: "${IMAGE_TAG}" # Usando a imagem Docker construída
   variables:
     BASE_URL: "http://localhost:5000" # URL para os testes de integração (dentro do container isolado)
   script:
     - echo "Executando testes de integração em ambiente Docker..."
-    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${IMAGE_TAG}" python todo_project/run.py & # Adicionadas aspas
+    - docker run --rm --name integration-tests -p 5000:5000 -e SECRET_KEY="$SECRET_KEY" "${IMAGE_TAG}" python todo_project/run.py & # Executa em background
     - sleep 5 # Espera a aplicação iniciar
     - python -m venv ${VENV_PATH} # Criando um venv novamente para isolamento
     - source ${VENV_PATH}/bin/activate
@@ -70,7 +70,7 @@ test_integration:
 
 test_functional:
   stage: test_functional
-  image: "${IMAGE_TAG}" # Usando a imagem Docker construída (Adicionadas aspas)
+  image: "${IMAGE_TAG}" # Usando a imagem Docker construída
   variables:
     BASE_URL: "http://localhost:8080" # URL da API para testes funcionais
   script:
@@ -119,6 +119,15 @@ deploy: # Adicionando o job de deploy
     - docker:20.10.16-dind
   tags:
     - docker-stable # Certifique-se de usar a tag que você definiu para o runner
+  before_script:
+    - echo "Remove anterior"
+    - PORT_CONTAINERS=$(docker ps --filter "publish=8081" -q)
+    - echo "$PORT_CONTAINERS" # Adicionadas aspas para evitar problemas com strings vazias
+    - if [ -n "$PORT_CONTAINERS" ]; then
+        docker stop "$PORT_CONTAINERS"
+        docker rm "$PORT_CONTAINERS"
+        sleep 5
+    fi
   script:
     - echo "Deploying the app"
     - docker run -d -p 8081:8080 "${IMAGE_TAG}" # Usando a variável IMAGE_TAG com aspas
