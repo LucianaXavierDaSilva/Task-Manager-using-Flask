@@ -6,17 +6,20 @@ stages:
   - deploy_dev
   - deploy_hml
   - deploy_prod
+
 variables:
   PYTHON_VERSION: "3.11-slim"
   VENV_PATH: ".venv"
   DOCKER_IMAGE_NAME: "task-manager-estudo-caso"
   IMAGE_TAG: "${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
-  SECRET_KEY: $SECRET_KEY
-  BASE_URL: "http://localhost:8080"
+  SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido
+  BASE_URL: "http://localhost:8080" # URL padrão
+
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
   paths:
     - ${VENV_PATH}/
+
 build:
   stage: build
   image: docker:20.10.21
@@ -29,6 +32,7 @@ build:
   artifacts:
     paths:
       - ./
+
 test_unit:
   stage: test_unit
   image: python:${PYTHON_VERSION}
@@ -45,6 +49,7 @@ test_unit:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+
 test_integration:
   stage: test_integration
   image: python:${PYTHON_VERSION}
@@ -56,6 +61,7 @@ test_integration:
     - pip install -r requirements.txt
     - pip install pytest requests
     - pytest tests/integration
+
 test_functional:
   stage: test_functional
   image: python:${PYTHON_VERSION}
@@ -67,6 +73,7 @@ test_functional:
     - pip install -r requirements.txt pytest requests
     - cd tests/functional
     - pytest --base-url=${BASE_URL}
+
 deploy_dev:
   stage: deploy_dev
   image: alpine/git
@@ -76,6 +83,7 @@ deploy_dev:
     - echo "Simulando deploy para Desenvolvimento..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+
 deploy_hml:
   stage: deploy_hml
   image: alpine/git
@@ -85,6 +93,7 @@ deploy_hml:
     - echo "Simulando deploy para Homologação..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+
 deploy_prod:
   stage: deploy_prod
   image: alpine/git
@@ -94,5 +103,3 @@ deploy_prod:
     - echo "Simulando deploy para Produção..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
     - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
-
-
