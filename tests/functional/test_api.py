@@ -2,36 +2,42 @@ import pytest
 import requests
 import os
 
-# Obtém a BASE_URL da variável de ambiente, com um valor padrão para local
+# Obtém a BASE_URL da variável de ambiente
 BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:5000/")
+print(f"BASE_URL sendo usada para os testes funcionais: {BASE_URL}")
 
-# Ajuste para Docker: substitui o valor padrão se estiver rodando no Docker
-# No ambiente do GitLab CI, a variável de ambiente BASE_URL será definida no .gitlab-ci.yml
-# Portanto, a lógica abaixo pode não ser estritamente necessária, mas pode ser mantida
-# como um fallback ou para testes locais em Docker.
-if os.environ.get("DOCKER_ENV") == "true":
-    BASE_URL = os.environ.get("BASE_URL", "http://192.168.98.10:8080/")
-    print(f"BASE_URL dentro do container (DOCKER_ENV=true): {BASE_URL}") # Para debug
-
-print(f"BASE_URL sendo usada para os testes: {BASE_URL}") # Para debug
+def get_csrf_token_functional():
+    """Obtém o token CSRF da página inicial (ou de alguma página protegida) para testes da API."""
+    response = requests.get(f"{BASE_URL}/add_task") # Uma página protegida que requer login
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'lxml')
+    csrf_token = soup.find('input', {'name': 'csrf_token'})
+    if csrf_token and 'value' in csrf_token.attrs:
+        return csrf_token['value']
+    else:
+        raise Exception("Campo 'csrf_token' não encontrado na página para testes funcionais.")
 
 def test_create_task_with_empty_title():
-    task_data = {"title": "", "description": "This task has no title"}
-    response = requests.post(f"{BASE_URL}/tasks", json=task_data)
+    csrf_token = get_csrf_token_functional()
+    task_data = {"title": "", "description": "This task has no title", "csrf_token": csrf_token}
+    response = requests.post(f"{BASE_URL}/tasks", data=task_data) # Use 'data' para form-urlencoded
     assert response.status_code == 400
 
 def test_update_task():
-    task_data = {"title": "Original Title", "description": "Original description"}
-    create_response = requests.post(f"{BASE_URL}/tasks", json=task_data)
-    assert create_response.status_code == 201 # Assumindo que a criação retorna 201 Created
+    csrf_token = get_csrf_token_functional()
+    # Primeiro, crie uma tarefa (isso pode ser simplificado se houver um endpoint de listagem)
+    create_data = {"title": "Original Title", "description": "Original description", "csrf_token": csrf_token}
+    create_response = requests.post(f"{BASE_URL}/tasks", data=create_data)
+    assert create_response.status_code == 201
     task_id = create_response.json().get("id")
-    assert task_id is not None, "Task ID não encontrado na resposta de criação"
-    updated_data = {"title": "Updated Title", "description": "Updated description"}
-    response = requests.put(f"{BASE_URL}/tasks/{task_id}", json=updated_data)
+    assert task_id is not None
+
+    updated_data = {"title": "Updated Title", "description": "Updated description", "csrf_token": csrf_token}
+    response = requests.put(f"{BASE_URL}/tasks/{task_id}", json=updated_data) # Assumindo que PUT é usado para update
     assert response.status_code == 200
     assert response.json().get("title") == "Updated Title"
 
-
+# Adicione mais testes funcionais conforme necessário
 
 
 
