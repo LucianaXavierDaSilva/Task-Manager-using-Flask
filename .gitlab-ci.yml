@@ -13,18 +13,10 @@ stages:
   - monitor
   - deploy_prod
 
-variables:
-  PYTHON_VERSION: "3.11-slim"
-  VENV_PATH: ".venv"
-  DOCKER_IMAGE_NAME: "$CI_REGISTRY/$CI_PROJECT_PATH"
-  IMAGE_TAG: "${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
-  SECRET_KEY: $SECRET_KEY
-  BASE_URL: $BASE_URL
-
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
   paths:
-    - ${VENV_PATH}/
+    - .venv/
 
 build:
   stage: build
@@ -33,43 +25,43 @@ build:
     - docker:20.10.21-dind
   script:
     - echo "Simulando Build da Imagem Docker..."
-    - echo "Imagem $IMAGE_TAG construída e pronta para deploy."
+    - echo "Imagem 192.168.98.10:8080/root/Task-Manager-using-Flask:${CI_COMMIT_SHORT_SHA} construída e pronta para deploy."
 
 test_unit:
   stage: test_unit
-  image: python:${PYTHON_VERSION}
+  image: python:3.11-slim
   script:
     - echo "Simulando execução de testes unitários..."
     - echo "Todos os testes unitários passaram."
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
 
 test_integration:
   stage: test_integration
-  image: python:${PYTHON_VERSION}
+  image: python:3.11-slim
   script:
     - echo "Simulando execução de testes de integração..."
     - echo "Todos os testes de integração passaram."
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
 
 test_functional:
   stage: test_functional
-  image: python:${PYTHON_VERSION}
+  image: python:3.11-slim
   script:
     - echo "Simulando execução de testes funcionais..."
     - echo "Todos os testes funcionais passaram."
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
   dependencies:
     - build
 
 sast:
   stage: sast
-  image: python:${PYTHON_VERSION} # Ou docker:20.10.21 se preferir consistência total
+  image: python:3.11-slim # Ou docker:20.10.21 se preferir consistência total
   script:
     - echo "Simulando Análise Estática de Segurança (Bandit)..."
     - echo "Nenhuma vulnerabilidade de alta severidade encontrada."
@@ -89,7 +81,7 @@ dast:
   stage: dast
   image: owasp/zap:stable
   services:
-    - name: "$IMAGE_TAG"
+    - name: "192.168.98.10:8080/root/Task-Manager-using-Flask:${CI_COMMIT_SHORT_SHA}"
       alias: app_under_test
       entrypoint: ["python", "/app/todo_project/run.py"]
   script:
@@ -103,7 +95,7 @@ dast:
     - build
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
 
 review:
   stage: review
@@ -123,10 +115,10 @@ deploy_dev:
     - docker:20.10.21-dind
   script:
     - echo "Simulando deploy para o ambiente develop..."
-    - echo "Aplicação implantada em: $BASE_URL"
+    - echo "Aplicação implantada em: http://localhost:8080"
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
   only:
     - develop
 
@@ -134,7 +126,7 @@ dast_dev:
   stage: dast_dev
   image: owasp/zap:stable
   services:
-    - name: "$IMAGE_TAG"
+    - name: "192.168.98.10:8080/root/Task-Manager-using-Flask:${CI_COMMIT_SHORT_SHA}"
       alias: app_under_test_dev
       entrypoint: ["python", "/app/todo_project/run.py"]
   script:
@@ -144,7 +136,7 @@ dast_dev:
     - deploy_dev
   environment:
     name: develop
-    url: $BASE_URL
+    url: http://localhost:8080
   only:
     - develop
 
@@ -166,7 +158,7 @@ dast_hml:
   stage: dast_hml
   image: owasp/zap:stable
   services:
-    - name: "$IMAGE_TAG"
+    - name: "192.168.98.10:8080/root/Task-Manager-using-Flask:${CI_COMMIT_SHORT_SHA}"
       alias: app_under_test_hml
       entrypoint: ["python", "/app/todo_project/run.py"]
   script:
