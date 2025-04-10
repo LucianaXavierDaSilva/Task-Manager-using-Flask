@@ -13,7 +13,7 @@ variables:
   DOCKER_IMAGE_NAME: "task-manager-estudo-caso"
   IMAGE_TAG: "${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
   SECRET_KEY: $SECRET_KEY # Assume que SECRET_KEY está definido
-  BASE_URL: "http://localhost:8080" # URL padrão
+  BASE_URL: "http://localhost:8080" # URL padrão (pode ser sobreescrito)
 
 cache:
   key: "venv-${CI_COMMIT_SHORT_SHA}"
@@ -70,9 +70,11 @@ test_functional:
     - python -m venv ${VENV_PATH}
     - source ${VENV_PATH}/bin/activate
     - pip install --upgrade pip
-    - pip install -r requirements.txt pytest requests
+    - pip install -r requirements.txt pytest requests beautifulsoup4 lxml # Adicione BeautifulSoup e lxml
     - cd tests/functional
     - pytest --base-url=${BASE_URL}
+  dependencies:
+    - build # Garante que a imagem Docker foi construída
 
 deploy_dev:
   stage: deploy_dev
