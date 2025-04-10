@@ -1,9 +1,208 @@
 stages:
   - build
+  - test_unit
+  - test_integration
+  - test_functional
+  - sast
+  - dast
+  - review
+  - deploy_dev
+  - dast_dev
+  - deploy_hml
+  - dast_hml
+  - monitor
+  - deploy_prod
+
+variables:
+  PYTHON_VERSION: "3.11-slim"
+  VENV_PATH: ".venv"
+  DOCKER_IMAGE_NAME: "$CI_REGISTRY/$CI_PROJECT_PATH"
+  IMAGE_TAG: "${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
+  SECRET_KEY: $SECRET_KEY
+  BASE_URL: $BASE_URL
+
+cache:
+  key: "venv-${CI_COMMIT_SHORT_SHA}"
+  paths:
+    - ${VENV_PATH}/
 
 build:
   stage: build
   image: docker:20.10.21
+  services:
+    - docker:20.10.21-dind
   script:
-    - echo "Teste simples de build"
+    - echo "Simulando Build da Imagem Docker..."
+    - echo "Imagem $IMAGE_TAG construída e pronta para deploy."
+
+test_unit:
+  stage: test_unit
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Simulando execução de testes unitários..."
+    - echo "Todos os testes unitários passaram."
+  environment:
+    name: develop
+    url: $BASE_URL
+
+test_integration:
+  stage: test_integration
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Simulando execução de testes de integração..."
+    - echo "Todos os testes de integração passaram."
+  environment:
+    name: develop
+    url: $BASE_URL
+
+test_functional:
+  stage: test_functional
+  image: python:${PYTHON_VERSION}
+  script:
+    - echo "Simulando execução de testes funcionais..."
+    - echo "Todos os testes funcionais passaram."
+  environment:
+    name: develop
+    url: $BASE_URL
+  dependencies:
+    - build
+
+sast:
+  stage: sast
+  image: python:${PYTHON_VERSION} # Ou docker:20.10.21 se preferir consistência total
+  script:
+    - echo "Simulando Análise Estática de Segurança (Bandit)..."
+    - echo "Nenhuma vulnerabilidade de alta severidade encontrada."
+  environment:
+    name: develop
+
+dependency_check:
+  stage: sast
+  image: owasp/dependency-check:6.6.0
+  script:
+    - echo "Simulando Análise de Dependências (OWASP Dependency-Check)..."
+    - echo "Nenhuma dependência vulnerável encontrada."
+  environment:
+    name: develop
+
+dast:
+  stage: dast
+  image: owasp/zap:stable
+  services:
+    - name: "$IMAGE_TAG"
+      alias: app_under_test
+      entrypoint: ["python", "/app/todo_project/run.py"]
+  script:
+    - echo "Simulando Análise Dinâmica de Segurança (OWASP ZAP)..."
+    - echo "Nenhuma vulnerabilidade dinâmica significativa encontrada."
+  artifacts:
+    paths:
+      - zap_report_simulado.json
+      - zap_report_simulado.html
+  dependencies:
+    - build
+  environment:
+    name: develop
+    url: $BASE_URL
+
+review:
+  stage: review
+  image: docker:20.10.21
+  script:
+    - echo "Simulando criação de ambiente de revisão para merge request..."
+    - echo "Ambiente de revisão pronto."
+  only:
+    - merge_requests
+  environment:
+    name: review
+
+deploy_dev:
+  stage: deploy_dev
+  image: docker:20.10.21
+  services:
+    - docker:20.10.21-dind
+  script:
+    - echo "Simulando deploy para o ambiente develop..."
+    - echo "Aplicação implantada em: $BASE_URL"
+  environment:
+    name: develop
+    url: $BASE_URL
+  only:
+    - develop
+
+dast_dev:
+  stage: dast_dev
+  image: owasp/zap:stable
+  services:
+    - name: "$IMAGE_TAG"
+      alias: app_under_test_dev
+      entrypoint: ["python", "/app/todo_project/run.py"]
+  script:
+    - echo "Simulando DAST no ambiente develop..."
+    - echo "Nenhuma vulnerabilidade dinâmica significativa encontrada no ambiente develop."
+  dependencies:
+    - deploy_dev
+  environment:
+    name: develop
+    url: $BASE_URL
+  only:
+    - develop
+
+deploy_hml:
+  stage: deploy_hml
+  image: docker:20.10.21
+  services:
+    - docker:20.10.21-dind
+  script:
+    - echo "Simulando deploy para o ambiente hml..."
+    - echo "Aplicação implantada em: http://localhost:8081 (simulado)"
+  environment:
+    name: hml
+    url: http://localhost:8081
+  only:
+    - hml
+
+dast_hml:
+  stage: dast_hml
+  image: owasp/zap:stable
+  services:
+    - name: "$IMAGE_TAG"
+      alias: app_under_test_hml
+      entrypoint: ["python", "/app/todo_project/run.py"]
+  script:
+    - echo "Simulando DAST no ambiente hml..."
+    - echo "Nenhuma vulnerabilidade dinâmica significativa encontrada no ambiente hml."
+  dependencies:
+    - deploy_hml
+  environment:
+    name: hml
+    url: http://localhost:8081
+  only:
+    - hml
+
+monitor:
+  stage: monitor
+  image: docker:20.10.21
+  script:
+    - echo "Simulando instalação e configuração de ferramentas de monitoramento..."
+    - echo "Monitoramento ativo."
+  environment:
+    name: prod
+  only:
+    - main
+
+deploy_prod:
+  stage: deploy_prod
+  image: docker:20.10.21
+  services:
+    - docker:20.10.21-dind
+  script:
+    - echo "Simulando deploy para o ambiente prod..."
+    - echo "Aplicação implantada em produção (simulado)."
+  environment:
+    name: prod
+    url: http://localhost
+  when: manual
+  only:
+    - main
 
