@@ -1,5 +1,5 @@
 import pytest
-from todo_project import app, db
+from todo_project.todo_project import app, db
 from todo_project.models import Task  # Importe seus modelos
 from datetime import datetime
 
