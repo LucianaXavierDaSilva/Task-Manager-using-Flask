@@ -7,18 +7,10 @@ stages:
   - deploy_hml
   - deploy_prod
 
-variables:
-  PYTHON_VERSION: 3.11-alpine
-  VENV_PATH: .venv
-  DOCKER_IMAGE_NAME: task-manager-estudo-caso
-  IMAGE_TAG: ${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}
-  SECRET_KEY: $SECRET_KEY
-  BASE_URL: http://localhost:8080
-
 cache:
   key: venv-${CI_COMMIT_SHORT_SHA}
   paths:
-    - ${VENV_PATH}/
+    - .venv/
 
 build:
   stage: build
@@ -26,89 +18,57 @@ build:
   services:
     - docker:dind
   script:
-    - echo "Compilando a imagem Docker..."
-    - docker build --tag "$IMAGE_TAG" .
-    - echo "Imagem Docker construída com sucesso: $IMAGE_TAG"
-  artifacts:
-    paths:
-      - Dockerfile
-      - docker-compose.yml
+    - chmod +x scripts/build.sh
+    - ./scripts/build.sh
 
 test_unit:
   stage: test_unit
-  image: python:${PYTHON_VERSION}
+  image: python:3.11-slim
   script:
-    - echo "Executando testes unitários..."
-    - python -m venv ${VENV_PATH}
-    - source ${VENV_PATH}/bin/activate
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov
-    - pytest --cov=todo_project --cov-report=xml:coverage.xml tests/unitary
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
+    - chmod +x scripts/test_unit.sh
+    - ./scripts/test_unit.sh
 
 test_integration:
   stage: test_integration
-  image: python:${PYTHON_VERSION}
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
-    - echo "Instalando dependências para testes de integração..."
-    - apk add --no-cache docker-cli docker-compose curl
-    - pip install -r requirements.txt pytest requests beautifulsoup4 lxml
-    - echo "Subindo app com docker-compose..."
-    - docker-compose up -d
-    - echo "Aguardando o app ficar disponível..."
-    - sleep 10
-    - pytest tests/integration
-    - docker-compose down
+    - chmod +x scripts/test_integration.sh
+    - ./scripts/test_integration.sh
 
 test_functional:
   stage: test_functional
-  image: python:${PYTHON_VERSION}
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
-    - echo "Instalando dependências para testes funcionais..."
-    - apk add --no-cache docker-cli docker-compose curl
-    - pip install -r requirements.txt pytest requests
-    - echo "Subindo app com docker-compose..."
-    - docker-compose up -d
-    - echo "Aguardando o app ficar disponível..."
-    - sleep 10
-    - pytest tests/functional
-    - docker-compose down
+    - chmod +x scripts/test_functional.sh
+    - ./scripts/test_functional.sh
 
 deploy_dev:
   stage: deploy_dev
-  image: alpine/git
+  image: alpine:latest
   only:
     - develop
   script:
-    - echo "Simulando deploy para Desenvolvimento..."
-    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
-    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+    - chmod +x scripts/deploy_dev.sh
+    - ./scripts/deploy_dev.sh
 
 deploy_hml:
   stage: deploy_hml
-  image: alpine/git
+  image: alpine:latest
   only:
     - hml
   script:
-    - echo "Simulando deploy para Homologação..."
-    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
-    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+    - chmod +x scripts/deploy_hml.sh
+    - ./scripts/deploy_hml.sh
 
 deploy_prod:
   stage: deploy_prod
-  image: alpine/git
+  image: alpine:latest
   only:
-    - main
+    - prod
   script:
-    - echo "Simulando deploy para Produção..."
-    - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
-    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
+    - chmod +x scripts/deploy_prod.sh
+    - ./scripts/deploy_prod.sh
