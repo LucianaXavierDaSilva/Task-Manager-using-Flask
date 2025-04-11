@@ -7,7 +7,7 @@ stages:
   - deploy_hml
   - deploy_prod
 variables:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: 3.11-slim
   VENV_PATH: .venv
   DOCKER_IMAGE_NAME: task-manager-estudo-caso
   IMAGE_TAG: ${DOCKER_IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}
@@ -23,10 +23,9 @@ build:
   services:
     - docker:dind
   script:
-    - |
-      echo "Compilando a imagem Docker..."
-      docker build --tag "$IMAGE_TAG" .
-      echo "Imagem Docker construída com sucesso: $IMAGE_TAG"
+    - echo "Compilando a imagem Docker..."
+    - docker build --tag "$IMAGE_TAG" .
+    - echo "Imagem Docker construída com sucesso: $IMAGE_TAG"
   artifacts:
     paths:
       - ./
@@ -34,14 +33,13 @@ test_unit:
   stage: test_unit
   image: python:${PYTHON_VERSION}
   script:
-    - |
-      echo "Executando testes unitários..."
-      python3 -m venv ${VENV_PATH}
-      . ${VENV_PATH}/bin/activate
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      pip install pytest pytest-cov
-      pytest --cov=todo_project --cov-report=xml:coverage.xml tests/unitary
+    - echo "Executando testes unitários..."
+    - python -m venv ${VENV_PATH}
+    - source ${VENV_PATH}/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov
+    - pytest --cov=todo_project --cov-report=xml:coverage.xml tests/unitary
   artifacts:
     reports:
       coverage_report:
@@ -53,16 +51,13 @@ test_integration:
   services:
     - docker:dind
   script:
-    - |
-      apk add --no-cache docker-compose python3 py3-pip py3-lxml
-      pip3 install pytest requests beautifulsoup4 lxml
-      echo "Subindo a aplicação com docker-compose..."
-      docker-compose up -d
-      echo "Aguardando a aplicação iniciar..."
-      sleep 10
-      docker ps
-      pytest tests/integration
-  after_script:
+    - echo "Subindo app com docker-compose para testes de integração..."
+    - docker-compose up -d
+    - apk add --no-cache python3 py3-pip curl
+    - pip3 install -r requirements.txt pytest requests beautifulsoup4 lxml
+    - echo "Aguardando o app ficar disponível..."
+    - sleep 10
+    - pytest tests/integration
     - docker-compose down
 test_functional:
   stage: test_functional
@@ -70,16 +65,13 @@ test_functional:
   services:
     - docker:dind
   script:
-    - |
-      apk add --no-cache docker-compose python3 py3-pip
-      pip3 install pytest requests
-      echo "Subindo a aplicação com docker-compose..."
-      docker-compose up -d
-      echo "Aguardando a aplicação iniciar..."
-      sleep 10
-      docker ps
-      pytest tests/functional
-  after_script:
+    - echo "Subindo app com docker-compose para testes funcionais..."
+    - docker-compose up -d
+    - apk add --no-cache python3 py3-pip curl
+    - pip3 install -r requirements.txt pytest requests
+    - echo "Aguardando o app ficar disponível..."
+    - sleep 10
+    - pytest tests/functional
     - docker-compose down
 deploy_dev:
   stage: deploy_dev
@@ -89,6 +81,7 @@ deploy_dev:
   script:
     - echo "Simulando deploy para Desenvolvimento..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 deploy_hml:
   stage: deploy_hml
   image: alpine/git
@@ -97,6 +90,7 @@ deploy_hml:
   script:
     - echo "Simulando deploy para Homologação..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
 deploy_prod:
   stage: deploy_prod
   image: alpine/git
@@ -105,3 +99,4 @@ deploy_prod:
   script:
     - echo "Simulando deploy para Produção..."
     - echo "Imagem a ser deployada (simulação): $IMAGE_TAG"
+    - echo "Nenhuma ação de deploy real implementada neste estudo de caso."
