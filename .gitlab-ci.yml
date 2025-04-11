@@ -10,3 +10,4 @@ build:
     - echo "Compilando a imagem Docker..."
     - docker build --tag "meu-teste" .
     - echo "Imagem Docker construída com sucesso"
+
