@@ -12,7 +12,7 @@ pip install -r requirements.txt
 pip install pytest pytest-cov
 
 # Adiciona diretório atual ao PYTHONPATH para evitar erro de importação
-export PYTHONPATH=$(pwd)
+export PYTHONPATH="$PYTHONPATH:$(pwd)/todo_project"
 
 # Executa testes unitários com cobertura
-pytest tests/unitary --cov=todo_project.todo_project --cov-report=xml
+pytest --cov=todo_project tests/unitary/ --cov-report=xml
