@@ -41,7 +41,11 @@ build:
 
 test_unit:
   stage: test_unit
-  image: python:3.11-slim
+  image: python:3.11-slim 
+  variables:
+    VENV_PATH: ".venv"
+    SECRET_KEY: "test-secret-key"
+    FLASK_ENV: "testing"
   needs: [prepare]
   script:
     - . .venv/bin/activate
