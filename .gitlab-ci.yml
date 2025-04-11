@@ -24,8 +24,16 @@ build:
 test_unit:
   stage: test_unit
   image: python:3.11-slim
-  script:
+  variables:
+    VENV_PATH: ".venv"
+  before_script:
+    - python -m venv $VENV_PATH
+    - . $VENV_PATH/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov
     - chmod +x scripts/test_unit.sh
+  script:
     - ./scripts/test_unit.sh
 
 test_integration:
