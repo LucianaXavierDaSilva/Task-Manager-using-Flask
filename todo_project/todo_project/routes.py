@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request, jsonify
 from . import app, db, bcrypt
 from .forms import (LoginForm, RegistrationForm, UpdateUserInfoForm,
                                     UpdateUserPassword, TaskForm, UpdateTaskForm)
-from todo_project.models import User, Task
+from .models import User, Task
 from flask_login import login_required, current_user, login_user, logout_user
 import logging
 
