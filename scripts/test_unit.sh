@@ -15,4 +15,4 @@ pip install pytest pytest-cov
 export PYTHONPATH=$(pwd)
 
 # Executa testes unitários com cobertura
-pytest tests/unitary --cov=todo_project --cov-report=xml
+pytest tests/unitary --cov=todo_project.todo_project --cov-report=xml
