@@ -1,5 +1,6 @@
 stages:
   - build
+  - prepare
   - test_unit
   - test_integration
   - test_functional
@@ -7,10 +8,27 @@ stages:
   - deploy_hml
   - deploy_prod
 
+# Cache para pip e virtualenv
 cache:
-  key: venv-${CI_COMMIT_SHORT_SHA}
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .venv/
+    - .cache/pip
+
+# Job para instalar dependências e preparar ambiente
+prepare:
+  stage: prepare
+  image: python:3.11-slim
+  script:
+    - python -m venv .venv
+    - . .venv/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov
+  artifacts:
+    paths:
+      - .venv/
+    expire_in: 1 hour
 
 build:
   stage: build
@@ -24,17 +42,18 @@ build:
 test_unit:
   stage: test_unit
   image: python:3.11-slim
-  variables:
-    VENV_PATH: ".venv"
-  before_script:
-    - python -m venv $VENV_PATH
-    - . $VENV_PATH/bin/activate
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov
-    - chmod +x scripts/test_unit.sh
+  needs: [prepare]
   script:
+    - . .venv/bin/activate
+    - chmod +x scripts/test_unit.sh
     - ./scripts/test_unit.sh
+  artifacts:
+    paths:
+      - coverage.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 test_integration:
   stage: test_integration
