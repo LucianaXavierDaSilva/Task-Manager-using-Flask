@@ -55,13 +55,12 @@ test_integration:
   image: docker:20.10.21
   services:
     - docker:dind
-  before_script:
-    - apk add --no-cache docker-compose python3 py3-pip py3-requests py3-lxml
-    - pip3 install pytest requests beautifulsoup4 lxml
   script:
+    - apk add --no-cache docker-compose python3 py3-pip py3-lxml
+    - pip3 install pytest requests beautifulsoup4 lxml
     - echo "Subindo a aplicação com docker-compose..."
     - docker-compose up -d
-    - echo "Aguardando aplicação iniciar..."
+    - echo "Aguardando a aplicação iniciar..."
     - sleep 10
     - docker ps
     - pytest tests/integration
@@ -74,13 +73,12 @@ test_functional:
   image: docker:20.10.21
   services:
     - docker:dind
-  before_script:
+  script:
     - apk add --no-cache docker-compose python3 py3-pip
     - pip3 install pytest requests
-  script:
     - echo "Subindo a aplicação com docker-compose..."
     - docker-compose up -d
-    - echo "Aguardando aplicação iniciar..."
+    - echo "Aguardando a aplicação iniciar..."
     - sleep 10
     - docker ps
     - pytest tests/functional
