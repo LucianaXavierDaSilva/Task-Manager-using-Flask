@@ -11,9 +11,9 @@
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 
   {% if title %}
-  <title>To-Do - {{ title }}</title>
+    <title>To-Do - {{ title }}</title>
   {% else %}
-  <title>To-Do App</title>
+    <title>To-Do App</title>
   {% endif %}
 </head>
 
@@ -21,7 +21,7 @@
   <header class="site-header">
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
       <div class="container">
-        <a class="navbar-brand mr-4" href="{{ url_for('routes.home') }}">Task Manager</a>
+        <a class="navbar-brand mr-4" href="{{ url_for('routes.about') }}">Task Manager</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
           aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -34,20 +34,20 @@
           <!-- Navbar Right Side -->
           <div class="navbar-nav">
             {% if current_user.is_authenticated %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                Welcome {{ current_user.username }}!
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="{{ url_for('routes.account') }}">Account Settings</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{{ url_for('routes.logout') }}">Logout</a>
-              </div>
-            </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+                  Welcome {{ current_user.username }}!
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" href="{{ url_for('routes.account') }}">Account Settings</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{{ url_for('routes.logout') }}">Logout</a>
+                </div>
+              </li>
             {% else %}
-            <a class="nav-item nav-link" href="{{ url_for('routes.login') }}">Login</a>
-            <a class="nav-item nav-link" href="{{ url_for('routes.register') }}">Register</a>
+              <a class="nav-item nav-link" href="{{ url_for('routes.login') }}">Login</a>
+              <a class="nav-item nav-link" href="{{ url_for('routes.register') }}">Register</a>
             {% endif %}
           </div>
         </div>
@@ -57,7 +57,7 @@
 
   <main role="main" class="container">
     <div class="row">
-      <!-- For Labels -->
+      <!-- Sidebar -->
       <div class="col-md-4">
         <div class="content-section">
           <nav class="nav flex-column">
@@ -67,18 +67,19 @@
         </div>
       </div>
 
+      <!-- Main Content -->
       <div class="col-md-8">
         {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        {% endfor %}
-        {% endif %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            {% endfor %}
+          {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
