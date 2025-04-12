@@ -1,30 +1,32 @@
 import pytest
 from datetime import datetime
-from todo_project.todo_project import app, db, bcrypt
-from todo_project.todo_project.models import Task, User
+from todo_project import create_app, db, bcrypt
+from todo_project.models import Task, User
 
 # ====== FIXTURES ======
 
 @pytest.fixture
-def test_client():
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # Banco em memória
-    app.config['WTF_CSRF_ENABLED'] = False  # Desativa CSRF para testes
+def app():
+    app = create_app()
+    app.config.update({
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        'WTF_CSRF_ENABLED': False,
+    })
 
-    with app.test_client() as client:
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-        yield client
-        with app.app_context():
-            db.session.remove()
-            db.drop_all()
-
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 @pytest.fixture
-def logged_in_client(test_client):
+def client(app):
+    return app.test_client()
+
+@pytest.fixture
+def logged_in_client(app, client):
     with app.app_context():
-        # Garante que o usuário existe
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_pw = bcrypt.generate_password_hash('rnpesr').decode('utf-8')
@@ -32,17 +34,16 @@ def logged_in_client(test_client):
             db.session.add(user)
             db.session.commit()
 
-    # Faz login via POST na rota /login
-    response = test_client.post('/login', data={
+    response = client.post('/login', data={
         'username': 'luciana',
         'password': 'rnpesr'
     }, follow_redirects=True)
     assert b'Task Manager' in response.data or b'All Tasks' in response.data
-    return test_client
+    return client
 
 # ====== TESTES DE MODEL ======
 
-def test_create_task_model():
+def test_create_task_model(app):
     with app.app_context():
         user = User.query.filter_by(username='luciana').first()
         if not user:
@@ -66,8 +67,7 @@ def test_create_task_model():
         assert retrieved_task.description == 'This is a unit test for the model'
         assert retrieved_task.user_id == user.id
 
-
-def test_task_model_completion():
+def test_task_model_completion(app):
     with app.app_context():
         user = User.query.filter_by(username='luciana').first()
         if not user:
@@ -93,8 +93,8 @@ def test_task_model_completion():
 
 # ====== TESTES DE ROTAS ======
 
-def test_route_home_unit(test_client):
-    response = test_client.get('/')
+def test_route_home_unit(client):
+    response = client.get('/')
     assert response.status_code == 200
     assert b"Task Manager" in response.data or b"About" in response.data
 
