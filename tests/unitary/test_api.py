@@ -39,7 +39,7 @@ def create_test_user(app):
 
 @pytest.fixture
 def logged_in_client(app, client, create_test_user):
-    create_test_user()  # Garantir usuário existe
+    create_test_user()  # Garantir que o usuário existe
     response = client.post('/login', data={
         'username': 'luciana',
         'password': 'rnpesr'
@@ -50,14 +50,16 @@ def logged_in_client(app, client, create_test_user):
 # ========== TESTES DE MODELO ==========
 
 def test_create_task_model(app, create_test_user):
-    user = create_test_user()
     with app.app_context():
+        user = create_test_user()
+        user_id = user.id  # Captura antes de sair do contexto da sessão
+
         task = Task(
             title='Unit Test Task',
             description='This is a unit test for the model',
             due_date=datetime.utcnow(),
             completed=False,
-            user_id=user.id
+            user_id=user_id
         )
         db.session.add(task)
         db.session.commit()
@@ -65,17 +67,19 @@ def test_create_task_model(app, create_test_user):
         retrieved_task = Task.query.filter_by(title='Unit Test Task').first()
         assert retrieved_task is not None
         assert retrieved_task.description == 'This is a unit test for the model'
-        assert retrieved_task.user_id == user.id
+        assert retrieved_task.user_id == user_id
         assert not retrieved_task.completed
 
 def test_task_model_completion(app, create_test_user):
-    user = create_test_user()
     with app.app_context():
+        user = create_test_user()
+        user_id = user.id  # Captura antes de sair do contexto da sessão
+
         task = Task(
             title='Model Completion Test',
             description='Testing task completion in model',
             completed=False,
-            user_id=user.id
+            user_id=user_id
         )
         db.session.add(task)
         db.session.commit()
