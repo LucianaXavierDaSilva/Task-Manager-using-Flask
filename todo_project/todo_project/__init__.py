@@ -21,7 +21,7 @@ migrate = Migrate()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
 login_manager = LoginManager()
-login_manager.login_view = 'routes.login'  # blueprint.nome_da_view
+login_manager.login_view = 'routes.login'  # Nome da view dentro do blueprint
 login_manager.login_message_category = 'info'
 
 
@@ -47,7 +47,7 @@ def create_app():
     login_manager.init_app(app)
 
     # Registra os blueprints
-    from .routes import routes
-    app.register_blueprint(routes)
+    from .routes import routes as routes_blueprint
+    app.register_blueprint(routes_blueprint)
 
     return app
