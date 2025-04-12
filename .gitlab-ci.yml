@@ -6,6 +6,7 @@ stages:
   - test_functional
   - sast_bandit
   - sast_dependency_check
+  - dast_zap
   - deploy_dev
   - deploy_hml
   - deploy_prod
@@ -44,6 +45,13 @@ sast_dependency_check:
   stage: sast_dependency_check
   script:
     - echo "Simulando análise de dependência com OWASP Dependency-Check"
+
+dast_zap:
+  stage: dast_zap
+  script:
+    - echo "Simulando análise dinâmica com OWASP ZAP"
+    - echo "Aplicação supostamente rodando em http://localhost:5000"
+    - echo "ZAP simulado com sucesso no modo quick scan"
 
 deploy_dev:
   stage: deploy_dev
