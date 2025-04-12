@@ -8,108 +8,45 @@ stages:
   - deploy_hml
   - deploy_prod
 
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .venv/
-    - .cache/pip
-
 prepare:
   stage: prepare
-  image: python:3.11-slim
   script:
-    # - python -m venv .venv
-    # - . .venv/bin/activate
-    # - pip install --upgrade pip
-    # - pip install -r requirements.txt
-    # - pip install pytest pytest-cov
-    - echo "Simulação: prepare stage executada com sucesso."
-  artifacts:
-    paths:
-      - .venv/
-    expire_in: 1 hour
+    - echo "prepare"
 
 build:
   stage: build
-  image: docker:20.10.21
-  services:
-    - docker:dind
   script:
-    # - chmod +x scripts/build.sh
-    # - ./scripts/build.sh
-    - echo "Simulação: build stage executada com sucesso."
+    - echo "build"
 
 test_unit:
   stage: test_unit
-  image: python:3.11-slim
-  variables:
-    SECRET_KEY: "test-secret-key"
-    FLASK_DEBUG: "1"
-    PYTHONPATH: "$CI_PROJECT_DIR/todo_project"
-  needs: [prepare]
   script:
-    # - . .venv/bin/activate
-    # - python todo_project/create_db.py
-    # - chmod +x scripts/test_unit.sh
-    # - ./scripts/test_unit.sh
-    - echo "Simulação: test_unit stage executada com sucesso."
-  artifacts:
-    paths:
-      - coverage.xml
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
+    - echo "test_unit"
 
 test_integration:
   stage: test_integration
-  image: docker:20.10.21
-  services:
-    - docker:dind
   script:
-    # - chmod +x scripts/test_integration.sh
-    # - ./scripts/test_integration.sh
-    - echo "Simulação: test_integration stage executada com sucesso."
+    - echo "test_integration"
 
 test_functional:
   stage: test_functional
-  image: docker:20.10.21
-  services:
-    - docker:dind
   script:
-    # - chmod +x scripts/test_functional.sh
-    # - ./scripts/test_functional.sh
-    - echo "Simulação: test_functional stage executada com sucesso."
+    - echo "test_functional"
 
 deploy_dev:
   stage: deploy_dev
-  image: alpine:latest
-  only:
-    - develop
   when: manual
   script:
-    # - chmod +x scripts/deploy_dev.sh
-    # - ./scripts/deploy_dev.sh
-    - echo "Simulação: deploy_dev manual acionado com sucesso."
+    - echo "deploy_dev"
 
 deploy_hml:
   stage: deploy_hml
-  image: alpine:latest
-  only:
-    - hml
   when: manual
   script:
-    # - chmod +x scripts/deploy_hml.sh
-    # - ./scripts/deploy_hml.sh
-    - echo "Simulação: deploy_hml manual acionado com sucesso."
+    - echo "deploy_hml"
 
 deploy_prod:
   stage: deploy_prod
-  image: alpine:latest
-  only:
-    - prod
   when: manual
   script:
-    # - chmod +x scripts/deploy_prod.sh
-    # - ./scripts/deploy_prod.sh
-    - echo "Simulação: deploy_prod manual acionado com sucesso."
+    - echo "deploy_prod"
