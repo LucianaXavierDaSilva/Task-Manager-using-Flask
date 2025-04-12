@@ -29,7 +29,7 @@ def error_500(error):
 # ========== Public Pages ==========
 @routes.route("/")
 @routes.route("/about")
-def about():
+def home():
     return render_template('about.html', title='About')
 
 
