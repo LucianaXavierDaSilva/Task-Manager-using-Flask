@@ -42,12 +42,11 @@ test_unit:
   image: python:3.11-slim
   variables:
     SECRET_KEY: "test-secret-key"
-    FLASK_ENV: "testing"
+    FLASK_DEBUG: "1"
     PYTHONPATH: "$CI_PROJECT_DIR/todo_project"
   needs: [prepare]
   script:
     - . .venv/bin/activate
-    - pip install -r requirements.txt
     - python todo_project/create_db.py
     - chmod +x scripts/test_unit.sh
     - ./scripts/test_unit.sh
