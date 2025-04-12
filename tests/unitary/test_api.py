@@ -24,7 +24,7 @@ def logged_in_client(test_client):
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_pw = bcrypt.generate_password_hash('rnpesr').decode('utf-8')
-            user = User(username='luciana', email='luciana@example.com', password=hashed_pw)
+            user = User(username='luciana', password=hashed_pw)  # ❌ REMOVIDO email
             db.session.add(user)
             db.session.commit()
     # Faz login via POST na rota /login
@@ -42,7 +42,7 @@ def test_create_task_model():
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_password = bcrypt.generate_password_hash("rnpesr").decode("utf-8")
-            user = User(username='luciana', email='luciana@example.com', password=hashed_password)
+            user = User(username='luciana', password=hashed_password)  # ❌ REMOVIDO email
             db.session.add(user)
             db.session.commit()
 
@@ -66,7 +66,7 @@ def test_task_model_completion():
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_password = bcrypt.generate_password_hash("rnpesr").decode("utf-8")
-            user = User(username='luciana', email='luciana@example.com', password=hashed_password)
+            user = User(username='luciana', password=hashed_password)  # ❌ REMOVIDO email
             db.session.add(user)
             db.session.commit()
 
