@@ -4,49 +4,61 @@ stages:
   - test_unit
   - test_integration
   - test_functional
+  - sast_bandit
+  - sast_dependency_check
   - deploy_dev
   - deploy_hml
   - deploy_prod
 
-prepare:
-  stage: prepare
-  script:
-    - echo "prepare"
-
 build:
   stage: build
   script:
-    - echo "build"
+    - echo "Simulando build com sucesso"
+
+prepare:
+  stage: prepare
+  script:
+    - echo "Simulando preparação do ambiente"
 
 test_unit:
   stage: test_unit
   script:
-    - echo "test_unit"
+    - echo "Simulando testes unitários"
 
 test_integration:
   stage: test_integration
   script:
-    - echo "test_integration"
+    - echo "Simulando testes de integração"
 
 test_functional:
   stage: test_functional
   script:
-    - echo "test_functional"
+    - echo "Simulando testes funcionais"
+
+sast_bandit:
+  stage: sast_bandit
+  script:
+    - echo "Simulando análise estática com Bandit"
+
+sast_dependency_check:
+  stage: sast_dependency_check
+  script:
+    - echo "Simulando análise de dependência com OWASP Dependency-Check"
 
 deploy_dev:
   stage: deploy_dev
   when: manual
   script:
-    - echo "deploy_dev"
+    - echo "Simulando deploy em ambiente DEV"
 
 deploy_hml:
   stage: deploy_hml
   when: manual
   script:
-    - echo "deploy_hml"
+    - echo "Simulando deploy em ambiente HML"
 
 deploy_prod:
   stage: deploy_prod
   when: manual
   script:
-    - echo "deploy_prod"
+    - echo "Simulando deploy em ambiente PROD"
