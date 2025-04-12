@@ -2,20 +2,24 @@ import pytest
 from datetime import datetime
 from todo_project.todo_project import app, db, bcrypt
 from todo_project.todo_project.models import Task, User
-from flask_login import login_user
 
 # ====== FIXTURES ======
 
 @pytest.fixture
 def test_client():
     app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # Banco em memória
     app.config['WTF_CSRF_ENABLED'] = False  # Desativa CSRF para testes
+
     with app.test_client() as client:
         with app.app_context():
+            db.drop_all()
             db.create_all()
         yield client
         with app.app_context():
+            db.session.remove()
             db.drop_all()
+
 
 @pytest.fixture
 def logged_in_client(test_client):
@@ -24,9 +28,10 @@ def logged_in_client(test_client):
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_pw = bcrypt.generate_password_hash('rnpesr').decode('utf-8')
-            user = User(username='luciana', password=hashed_pw)  # ❌ REMOVIDO email
+            user = User(username='luciana', password=hashed_pw)
             db.session.add(user)
             db.session.commit()
+
     # Faz login via POST na rota /login
     response = test_client.post('/login', data={
         'username': 'luciana',
@@ -42,7 +47,7 @@ def test_create_task_model():
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_password = bcrypt.generate_password_hash("rnpesr").decode("utf-8")
-            user = User(username='luciana', password=hashed_password)  # ❌ REMOVIDO email
+            user = User(username='luciana', password=hashed_password)
             db.session.add(user)
             db.session.commit()
 
@@ -61,12 +66,13 @@ def test_create_task_model():
         assert retrieved_task.description == 'This is a unit test for the model'
         assert retrieved_task.user_id == user.id
 
+
 def test_task_model_completion():
     with app.app_context():
         user = User.query.filter_by(username='luciana').first()
         if not user:
             hashed_password = bcrypt.generate_password_hash("rnpesr").decode("utf-8")
-            user = User(username='luciana', password=hashed_password)  # ❌ REMOVIDO email
+            user = User(username='luciana', password=hashed_password)
             db.session.add(user)
             db.session.commit()
 
