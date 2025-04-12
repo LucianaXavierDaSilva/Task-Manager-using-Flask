@@ -1,6 +1,6 @@
 import pytest
 from todo_project.todo_project import app, db
-from todo_project.models import Task  # Importe seus modelos
+from todo_project.todo_project.models import Task
 from datetime import datetime
 
 @pytest.fixture
