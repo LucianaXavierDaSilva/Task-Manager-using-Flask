@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 routes = Blueprint('routes', __name__)
 
-# Error Handlers
+# ========== Error Handlers ==========
 @routes.app_errorhandler(404)
 def error_404(error):
     return render_template('errors/404.html'), 404
@@ -26,14 +26,14 @@ def error_500(error):
     return render_template('errors/500.html'), 500
 
 
-# Public Pages
+# ========== Public Pages ==========
 @routes.route("/")
 @routes.route("/about")
 def about():
     return render_template('about.html', title='About')
 
 
-# Auth Routes
+# ========== Auth Routes ==========
 @routes.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -68,7 +68,7 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-# Task Routes
+# ========== Task Routes ==========
 @routes.route("/all_tasks")
 @login_required
 def all_tasks():
@@ -80,7 +80,7 @@ def all_tasks():
 def add_task():
     form = TaskForm()
     if form.validate_on_submit():
-        task = Task(content=form.task_name.data, author=current_user)
+        task = Task(title=form.task_name.data, author=current_user)
         db.session.add(task)
         db.session.commit()
         flash('Task created', 'success')
@@ -96,8 +96,8 @@ def update_task(task_id):
 
     form = UpdateTaskForm()
     if form.validate_on_submit():
-        if form.task_name.data != task.content:
-            task.content = form.task_name.data
+        if form.task_name.data != task.title:
+            task.title = form.task_name.data
             db.session.commit()
             flash('Task updated', 'success')
         else:
@@ -105,7 +105,7 @@ def update_task(task_id):
         return redirect(url_for('routes.all_tasks'))
 
     elif request.method == 'GET':
-        form.task_name.data = task.content
+        form.task_name.data = task.title
     return render_template('add_task.html', title='Update Task', form=form)
 
 @routes.route("/all_tasks/<int:task_id>/delete_task")
@@ -120,7 +120,7 @@ def delete_task(task_id):
     return redirect(url_for('routes.all_tasks'))
 
 
-# Account Management
+# ========== Account Management ==========
 @routes.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
@@ -150,7 +150,7 @@ def change_password():
     return render_template('change_password.html', title='Change Password', form=form)
 
 
-# API Routes
+# ========== API Routes ==========
 @routes.route('/tasks', methods=['POST'])
 @login_required
 def create_new_task():
@@ -158,16 +158,16 @@ def create_new_task():
     description = request.form.get('description')
     csrf_token = request.form.get('csrf_token')  # CSRF handled by Flask-WTF
 
-    logger.info(f"POST /tasks with data: {request.form}")
+    logger.info(f"POST /tasks by user {current_user.id}: {request.form}")
     if not title or not description or not csrf_token:
         logger.warning("Incomplete data for POST /tasks")
         return jsonify({'error': 'Title, description, and CSRF token are required'}), 400
 
-    task = Task(content=title, description=description, author=current_user)
+    task = Task(title=title, description=description, author=current_user)
     db.session.add(task)
     db.session.commit()
     logger.info(f"Task created with ID: {task.id}")
-    return jsonify({'id': task.id, 'title': task.content, 'description': task.description}), 201
+    return jsonify({'id': task.id, 'title': task.title, 'description': task.description}), 201
 
 @routes.route('/tasks/<int:task_id>', methods=['GET'])
 @login_required
@@ -175,6 +175,4 @@ def get_single_task(task_id):
     task = Task.query.get_or_404(task_id)
     if task.author != current_user:
         return jsonify({'error': 'Unauthorized'}), 403
-    return jsonify({'id': task.id, 'title': task.content, 'description': task.description}), 200
-
-
+    return jsonify({'id': task.id, 'title': task.title, 'description': task.description}), 200
