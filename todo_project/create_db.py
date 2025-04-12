@@ -1,25 +1,13 @@
-import sys
-import os
-from dotenv import load_dotenv
+from todo_project import create_app, db
+from todo_project.models import User, Task  # Certifica-se de que as tabelas sejam criadas
 
-load_dotenv()
+# Cria a aplicação Flask com base nas configurações padrão
+app = create_app()
 
-# Adiciona ao sys.path o diretório que contém o seu pacote de aplicação ('todo_project' interno)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-APP_DIR = os.path.join(BASE_DIR, "todo_project")
-sys.path.append(APP_DIR)
-
-print("sys.path:", sys.path)
-
-from todo_project import app, db
-
+# Cria todas as tabelas no contexto da aplicação
 with app.app_context():
     db.create_all()
-    print("Banco de dados criado!")
-
-
-
-
+    print("Banco de dados criado com sucesso!")
 
 
 
