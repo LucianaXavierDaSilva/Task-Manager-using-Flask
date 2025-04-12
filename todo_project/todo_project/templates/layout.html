@@ -8,7 +8,6 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 
   {% if title %}
@@ -29,7 +28,8 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarToggle">
           <div class="navbar-nav mr-auto">
-            <a class="nav-item nav-link" href="{{ url_for('about') }}">About</a>
+            <!-- Corrigido: 'about' → 'routes.about' -->
+            <a class="nav-item nav-link" href="{{ url_for('routes.about') }}">About</a>
           </div>
 
           <!-- Navbar Right Side -->
@@ -46,26 +46,24 @@
                 <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
               </div>
             </li>
-
             {% else %}
             <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>
             <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
             {% endif %}
-
           </div>
         </div>
       </div>
     </nav>
   </header>
+
   <main role="main" class="container">
     <div class="row">
-
       <!-- For Labels -->
       <div class="col-md-4">
         <div class="content-section">
           <nav class="nav flex-column">
-            <a class="nav-link" href="{{url_for('add_task')}}">Add Task</a>
-            <a class="nav-link active" href="{{url_for('all_tasks')}}">View All Tasks</a>
+            <a class="nav-link" href="{{ url_for('add_task') }}">Add Task</a>
+            <a class="nav-link active" href="{{ url_for('all_tasks') }}">View All Tasks</a>
           </nav>
         </div>
       </div>
@@ -94,5 +92,4 @@
   <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.js') }}"></script>
 
 </body>
-
 </html>
