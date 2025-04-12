@@ -8,14 +8,12 @@ stages:
   - deploy_hml
   - deploy_prod
 
-# Cache para pip e virtualenv
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .venv/
     - .cache/pip
 
-# Job para instalar dependências e preparar ambiente
 prepare:
   stage: prepare
   image: python:3.11-slim
@@ -41,7 +39,7 @@ build:
 
 test_unit:
   stage: test_unit
-  image: python:3.11-slim 
+  image: python:3.11-slim
   variables:
     VENV_PATH: ".venv"
     SECRET_KEY: "test-secret-key"
@@ -49,6 +47,8 @@ test_unit:
   needs: [prepare]
   script:
     - . .venv/bin/activate
+    - pip install -r requirements.txt  # Garante que dependências estejam disponíveis
+    - python todo_project/create_db.py  # Cria o banco antes dos testes
     - chmod +x scripts/test_unit.sh
     - ./scripts/test_unit.sh
   artifacts:
