@@ -176,3 +176,5 @@ def get_single_task(task_id):
     if task.author != current_user:
         return jsonify({'error': 'Unauthorized'}), 403
     return jsonify({'id': task.id, 'title': task.content, 'description': task.description}), 200
+
+
