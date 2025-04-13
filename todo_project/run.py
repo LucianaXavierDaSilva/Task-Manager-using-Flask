@@ -10,5 +10,11 @@ logging.basicConfig(
 
 app = create_app()
 
+# Exemplo de rota que gera log
+@app.route('/')
+def index():
+    logging.info("Página inicial acessada.")
+    return "Bem-vindo à aplicação Flask!"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
