@@ -5,81 +5,74 @@ stages:
   - sast
   - review
   - deploy_stage
-  - dast_zap
+  - dast
   - deploy_dev
   - deploy_hml
   - deploy_prod
 
+# Build
 build:
   stage: build
   script:
     - echo "Simulando build com sucesso"
 
+# Prepare
 prepare:
   stage: prepare
   script:
     - echo "Simulando preparação do ambiente"
 
-test:
+# Testes (simulados como jobs separados para aparecerem visualmente)
+test_unit:
   stage: test
   script:
     - echo "Simulando testes unitários"
+
+test_integration:
+  stage: test
+  script:
     - echo "Simulando testes de integração"
+
+test_functional:
+  stage: test
+  script:
     - echo "Simulando testes funcionais"
-  parallel:
-    matrix:
-      - TEST_TYPE: unit
-      - TEST_TYPE: integration
-      - TEST_TYPE: functional
-  script:
-    - echo "Simulando testes $TEST_TYPE com sucesso"
 
-sast:
+# SAST (simulados como jobs separados)
+sast_bandit:
   stage: sast
-  parallel:
-    matrix:
-      - SAST_TOOL: bandit
-      - SAST_TOOL: dependency-check
   script:
-    - echo "Simulando análise com $SAST_TOOL"
+    - echo "Simulando análise estática com Bandit"
 
+sast_dependency_check:
+  stage: sast
+  script:
+    - echo "Simulando análise de dependências com OWASP Dependency-Check"
+
+# Review App (um ambiente temporário para cada merge request)
 review_app:
   stage: review
   script:
-    - echo "Criando ambiente temporário de revisão para o merge request"
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    on_stop: stop_review_app
+    - echo "Simulando criação de Review App para este Merge Request"
   only:
     - merge_requests
 
-stop_review_app:
-  stage: review
-  script:
-    - echo "Removendo ambiente temporário de revisão"
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
-  when: manual
-  only:
-    - merge_requests
-
+# Deploy em Stage
 deploy_stage:
   stage: deploy_stage
+  when: manual
   script:
-    - echo "Simulando deploy no ambiente de STAGE"
-  environment:
-    name: staging
-    url: http://staging.example.com
+    - echo "Simulando deploy para ambiente de Stage"
 
+# DAST (OWASP ZAP simulado após o deploy em Stage)
 dast_zap:
-  stage: dast_zap
+  stage: dast
   script:
-    - echo "Simulando análise dinâmica com OWASP ZAP no ambiente de STAGE"
-    - echo "ZAP supostamente analisando http://staging.example.com"
-  needs:
-    - deploy_stage
+    - echo "Simulando análise dinâmica com OWASP ZAP no ambiente de Stage"
+    - echo "Aplicação supostamente acessível em http://stage.example.com"
+    - echo "ZAP simulado com sucesso no modo quick scan"
 
+# Deploys manuais
 deploy_dev:
   stage: deploy_dev
   when: manual
