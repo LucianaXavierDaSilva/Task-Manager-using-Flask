@@ -10,52 +10,47 @@ stages:
   - deploy_hml
   - deploy_prod
 
-# Build
 build:
   stage: build
   script:
-    - sleep 1
+  - sleep 1
 
-# Prepare
 prepare:
   stage: prepare
   script:
-    - sleep 1
+  - sleep 1
 
-# Testes simulados (visualmente separados)
 test_unit:
   stage: test
   script:
-    - sleep 1
+  - sleep 1
 
 test_integration:
   stage: test
   script:
-    - sleep 1
+  - sleep 1
 
 test_functional:
   stage: test
   script:
-    - sleep 1
+  - sleep 1
 
-# SAST simulados (visualmente separados)
 sast_bandit:
   stage: sast
   script:
-    - sleep 1
+  - sleep 1
 
 sast_dependency_check:
   stage: sast
   script:
-    - sleep 1
+  - sleep 1
 
-# Review App para Merge Requests
 review_app:
   stage: review
   script:
-    - sleep 1
-  only:
-    - merge_requests
+  - sleep 1
+  rules:
+  - if: '$CI_MERGE_REQUEST_IID'
   environment:
     name: review/$CI_COMMIT_REF_NAME
     on_stop: stop_review_app
@@ -63,35 +58,34 @@ review_app:
 stop_review_app:
   stage: review
   script:
-    - sleep 1
+  - sleep 1
   when: manual
+  rules:
+  - if: '$CI_MERGE_REQUEST_IID'
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
-  only:
-    - merge_requests
 
-# Deploy em Stage
 deploy_stage:
   stage: deploy_stage
   script:
-    - sleep 1
+  - sleep 1
   when: manual
   environment:
     name: stage
 
-# DAST simulado com OWASP ZAP após deploy em stage
 dast_zap:
   stage: dast
   script:
-    - sleep 1
-  needs: ["deploy_stage"]
+  - sleep 1
+  needs:
+  - job: deploy_stage
+    optional: true
 
-# Deploys manuais
 deploy_dev:
   stage: deploy_dev
   script:
-    - sleep 1
+  - sleep 1
   when: manual
   environment:
     name: dev
@@ -99,7 +93,7 @@ deploy_dev:
 deploy_hml:
   stage: deploy_hml
   script:
-    - sleep 1
+  - sleep 1
   when: manual
   environment:
     name: hml
@@ -107,7 +101,7 @@ deploy_hml:
 deploy_prod:
   stage: deploy_prod
   script:
-    - sleep 1
+  - sleep 1
   when: manual
   environment:
     name: production
