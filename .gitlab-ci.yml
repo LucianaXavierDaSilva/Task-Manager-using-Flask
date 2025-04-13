@@ -14,79 +14,100 @@ stages:
 build:
   stage: build
   script:
-    - echo "Simulando build com sucesso"
+    - sleep 1
 
 # Prepare
 prepare:
   stage: prepare
   script:
-    - echo "Simulando preparação do ambiente"
+    - sleep 1
 
-# Testes (simulados como jobs separados para aparecerem visualmente)
+# Testes simulados (visualmente separados)
 test_unit:
   stage: test
   script:
-    - echo "Simulando testes unitários"
+    - sleep 1
 
 test_integration:
   stage: test
   script:
-    - echo "Simulando testes de integração"
+    - sleep 1
 
 test_functional:
   stage: test
   script:
-    - echo "Simulando testes funcionais"
+    - sleep 1
 
-# SAST (simulados como jobs separados)
+# SAST simulados (visualmente separados)
 sast_bandit:
   stage: sast
   script:
-    - echo "Simulando análise estática com Bandit"
+    - sleep 1
 
 sast_dependency_check:
   stage: sast
   script:
-    - echo "Simulando análise de dependências com OWASP Dependency-Check"
+    - sleep 1
 
-# Review App (um ambiente temporário para cada merge request)
+# Review App para Merge Requests
 review_app:
   stage: review
   script:
-    - echo "Simulando criação de Review App para este Merge Request"
+    - sleep 1
+  only:
+    - merge_requests
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    on_stop: stop_review_app
+
+stop_review_app:
+  stage: review
+  script:
+    - sleep 1
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
   only:
     - merge_requests
 
 # Deploy em Stage
 deploy_stage:
   stage: deploy_stage
-  when: manual
   script:
-    - echo "Simulando deploy para ambiente de Stage"
+    - sleep 1
+  when: manual
+  environment:
+    name: stage
 
-# DAST (OWASP ZAP simulado após o deploy em Stage)
+# DAST simulado com OWASP ZAP após deploy em stage
 dast_zap:
   stage: dast
   script:
-    - echo "Simulando análise dinâmica com OWASP ZAP no ambiente de Stage"
-    - echo "Aplicação supostamente acessível em http://stage.example.com"
-    - echo "ZAP simulado com sucesso no modo quick scan"
+    - sleep 1
+  needs: ["deploy_stage"]
 
 # Deploys manuais
 deploy_dev:
   stage: deploy_dev
-  when: manual
   script:
-    - echo "Simulando deploy em ambiente DEV"
+    - sleep 1
+  when: manual
+  environment:
+    name: dev
 
 deploy_hml:
   stage: deploy_hml
-  when: manual
   script:
-    - echo "Simulando deploy em ambiente HML"
+    - sleep 1
+  when: manual
+  environment:
+    name: hml
 
 deploy_prod:
   stage: deploy_prod
-  when: manual
   script:
-    - echo "Simulando deploy em ambiente PROD"
+    - sleep 1
+  when: manual
+  environment:
+    name: production
