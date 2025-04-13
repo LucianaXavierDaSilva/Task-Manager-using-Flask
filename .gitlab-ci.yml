@@ -1,11 +1,14 @@
 stages:
   - build
   - prepare
-  - test
-  - sast
+  - test_unit
+  - test_integration
+  - test_functional
+  - sast_bandit
+  - sast_dependency_check
   - review
   - deploy_stage
-  - dast
+  - dast_zap
   - deploy_dev
   - deploy_hml
   - deploy_prod
@@ -13,95 +16,71 @@ stages:
 build:
   stage: build
   script:
-  - sleep 1
+    - echo "Simulando build com sucesso"
 
 prepare:
   stage: prepare
   script:
-  - sleep 1
+    - echo "Simulando preparação do ambiente"
 
 test_unit:
-  stage: test
+  stage: test_unit
   script:
-  - sleep 1
+    - echo "Simulando testes unitários"
 
 test_integration:
-  stage: test
+  stage: test_integration
   script:
-  - sleep 1
+    - echo "Simulando testes de integração"
 
 test_functional:
-  stage: test
+  stage: test_functional
   script:
-  - sleep 1
+    - echo "Simulando testes funcionais"
 
 sast_bandit:
-  stage: sast
+  stage: sast_bandit
   script:
-  - sleep 1
+    - echo "Simulando análise estática com Bandit"
 
 sast_dependency_check:
-  stage: sast
+  stage: sast_dependency_check
   script:
-  - sleep 1
+    - echo "Simulando análise de dependência com OWASP Dependency-Check"
 
 review_app:
   stage: review
   script:
-  - sleep 1
-  rules:
-  - if: '$CI_MERGE_REQUEST_IID'
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    on_stop: stop_review_app
-
-stop_review_app:
-  stage: review
-  script:
-  - sleep 1
-  when: manual
-  rules:
-  - if: '$CI_MERGE_REQUEST_IID'
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
+    - echo "Simulando criação de ambiente de Review App"
+  only:
+    - merge_requests
 
 deploy_stage:
   stage: deploy_stage
-  script:
-  - sleep 1
   when: manual
-  environment:
-    name: stage
+  script:
+    - echo "Simulando deploy para ambiente de Stage"
 
 dast_zap:
-  stage: dast
+  stage: dast_zap
   script:
-  - sleep 1
-  needs:
-  - job: deploy_stage
-    optional: true
+    - echo "Simulando análise dinâmica com OWASP ZAP no ambiente de Stage"
+    - echo "Aplicação supostamente acessível em http://stage.example.com"
 
 deploy_dev:
   stage: deploy_dev
-  script:
-  - sleep 1
   when: manual
-  environment:
-    name: dev
+  script:
+    - echo "Simulando deploy em ambiente DEV"
 
 deploy_hml:
   stage: deploy_hml
-  script:
-  - sleep 1
   when: manual
-  environment:
-    name: hml
+  script:
+    - echo "Simulando deploy em ambiente HML"
 
 deploy_prod:
   stage: deploy_prod
-  script:
-  - sleep 1
   when: manual
-  environment:
-    name: production
+  script:
+    - echo "Simulando deploy em ambiente PROD"
